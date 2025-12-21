@@ -1,0 +1,71 @@
+name: Build and Publish NuGet Package
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  NUGET_FEED_URL: 'https://pkgs.dev.azure.com/jasonberkes/_packaging/taskmaster-packages/nuget/v3/index.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Pack
+      run: dotnet pack --configuration Release --no-build --output ./nupkg
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: ./nupkg/*.nupkg
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-package
+        path: ./nupkg
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Add Azure Artifacts source
+      run: |
+        dotnet nuget add source "${{ env.NUGET_FEED_URL }}" \
+          --name "taskmaster-packages" \
+          --username "AzureDevOps" \
+          --password "${{ secrets.AZURE_ARTIFACTS_PAT }}" \
+          --store-password-in-clear-text
+    
+    - name: Push to Azure Artifacts
+      run: |
+        dotnet nuget push ./nupkg/*.nupkg \
+          --source "taskmaster-packages" \
+          --api-key az \
+          --skip-duplicate
