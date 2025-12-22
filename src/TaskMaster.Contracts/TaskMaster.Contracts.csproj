@@ -9,7 +9,7 @@
     <!-- NuGet Package Configuration -->
     <IsPackable>true</IsPackable>
     <PackageId>TaskMaster.Contracts</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>Super Easy Software</Authors>
     <Company>Super Easy Software</Company>
     <Description>Shared contracts library for TaskMaster Platform microservices. Contains message contracts, event definitions, and constants for Service Bus communication.</Description>

@@ -16,6 +16,16 @@ public abstract class ExecutionEventBase
     public int WorkItemId { get; set; }
 
     /// <summary>
+    /// Who/what is assigned to execute this WorkItem.
+    /// </summary>
+    public string? AssignedTo { get; set; }
+
+    /// <summary>
+    /// Type of execution (e.g., ClaudeCodeJob, Manual).
+    /// </summary>
+    public string? ExecutionType { get; set; }
+
+    /// <summary>
     /// UTC timestamp when the event occurred.
     /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
