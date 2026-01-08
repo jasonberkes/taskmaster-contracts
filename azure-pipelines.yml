@@ -160,7 +160,7 @@ stages:
   - stage: SemanticRelease
     displayName: 'Get Semantic Version'
     dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'Schedule'), eq(variables['Build.Reason'], 'Manual')))
     jobs:
       - job: Release
         displayName: 'Determine Version'
@@ -194,7 +194,7 @@ stages:
     dependsOn:
       - Build
       - SemanticRelease
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'Schedule'), eq(variables['Build.Reason'], 'Manual')))
     variables:
       semanticVersion: $[ stageDependencies.SemanticRelease.Release.outputs['semver.semanticVersion'] ]
     jobs:
