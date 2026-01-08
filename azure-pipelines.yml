@@ -3,29 +3,49 @@
 # ============================================================================
 # Shared contracts library for TaskMaster microservices
 # Publishes NuGet package to Azure Artifacts (tm-packages feed)
-# Standardized to match TaskMaster.Platform pattern
+#
+# Build Strategy:
+# - PR to main: Build & Test only (validation)
+# - Scheduled (6am/12pm/6pm/12am CST): Build + Publish NuGet IF code changed
+# - NO automatic builds on merge to main (only scheduled)
+# - See KB #848 for CI/CD policy details
 # ============================================================================
 
-trigger:
-  branches:
-    include:
-      - main
-  tags:
-    include:
-      - 'v*'
-  paths:
-    exclude:
-      - '**/*.md'
-      - 'docs/**'
+# Disable CI trigger - only build on schedule or PR
+trigger: none
 
 pr:
   branches:
     include:
       - main
-  paths:
-    exclude:
-      - '**/*.md'
-      - 'docs/**'
+
+# Scheduled builds (CST times, cron in UTC)
+schedules:
+  - cron: '0 12 * * *'  # 6:00 AM CST
+    displayName: 'Scheduled Build - 6am CST'
+    branches:
+      include:
+        - main
+    always: false
+  - cron: '0 18 * * *'  # 12:00 PM CST
+    displayName: 'Scheduled Build - 12pm CST'
+    branches:
+      include:
+        - main
+    always: false
+  - cron: '0 0 * * *'   # 6:00 PM CST
+    displayName: 'Scheduled Build - 6pm CST'
+    branches:
+      include:
+        - main
+    always: false
+  - cron: '0 6 * * *'   # 12:00 AM CST
+    displayName: 'Scheduled Build - 12am CST'
+    branches:
+      include:
+        - main
+    always: false
+
 
 # Use self-hosted agents for consistency with other TaskMaster repos
 pool:
